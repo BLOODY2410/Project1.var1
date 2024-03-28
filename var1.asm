@@ -141,6 +141,62 @@ not_matched:
     ret
 count_occurrences_substring_m ENDP
 
+convert_to_string PROC
+    push ax             ; Збереження регістра AX
+    push bx             ; Збереження регістра BX
+    push cx             ; Збереження регістра CX
+    push si             ; Збереження регістра SI
+
+    mov bx, 10          ; BX буде використовуватись як дільник
+
+    mov di, offset result   ; DI вказує на буфер результату
+    mov cx, 0           ; Лічильник кількості цифр
+
+convert_loop:
+    xor dx, dx          ; Очищення DX перед діленням
+    div bx              ; Ділення AX на BX, частка у AX, залишок у DX
+
+    add dl, '0'         ; Перетворення залишку у ASCII символ
+    mov [di], dl        ; Збереження ASCII символу у буфері результату
+    inc di              ; Перехід до наступної позиції у буфері результату
+
+    inc cx              ; Інкрементування лічильника цифр
+
+    cmp ax, 0           ; Перевірка, чи частка стала нулем
+    jnz convert_loop    ; Якщо ні, продовження циклу
+
+    ; Реверсування рядка
+    mov si, offset result  ; SI вказує на початок рядка
+    mov di, cx           ; DI містить кількість цифр
+    dec di               ; Декрементування DI для отримання індексу останнього символу
+
+reverse_loop:
+    cmp si, di           ; Порівняння SI та DI
+    jge end_reverse      ; Якщо SI >= DI, досягнення середини рядка
+    mov al, [si]         ; Завантаження символу з початку
+    mov ah, [di]         ; Завантаження символу з кінця
+    mov [si], ah         ; Обмін символів
+    mov [di], al         ; Обмін символів
+    inc si               ; Переміщення SI вперед
+    dec di               ; Переміщення DI назад
+    jmp reverse_loop     ; Повторення циклу
+
+end_reverse:
+    mov si, offset result ; SI вказує на початок рядка
+    add si, cx           ; Переміщення SI в кінець рядка
+    mov byte ptr [si], '$'  ; Додавання '$' як термінатора рядка
+
+    pop si               ; Відновлення регістра SI
+    pop cx               ; Відновлення регістра CX
+    pop bx               ; Відновлення регістра BX
+    pop ax               ; Відновлення регістра AX
+    ret
+convert_to_string ENDP
+
+
+end main
+
+
 
 
     mov ah, 4Ch               ; Функція DOS для завершення програми
