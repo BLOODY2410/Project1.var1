@@ -106,6 +106,24 @@ read_substring_end:
 read_argument ENDP
 
 
+count_occurrences_substring_m PROC
+    xor cx, cx                     ; Ініціалізація лічильника входжень
+    mov bx, offset string          ; Встановлення покажчика на початок рядка
+outer_loop:
+    mov si, bx                     ; Встановлення SI на поточну позицію в рядку
+    mov di, offset substring       ; Встановлення DI на початок підрядка
+    mov dh, substring_length       ; Встановлення DH на довжину підрядка
+inner_loop:
+    mov al, [si]                   ; Завантаження символу з рядка
+    cmp al, [di]                   ; Порівняння з відповідним символом підрядка
+    jne not_matched                ; Якщо не співпадає, перехід до наступного підрядка
+    inc si                         ; Перехід до наступного символу в рядку
+    inc di                         ; Перехід до наступного символу в підрядку
+    dec dh                         ; Зменшення залишкової довжини підрядка
+    jnz inner_loop                 ; Якщо DH не нуль, продовжен
+
+
+
     mov ah, 4Ch               ; Функція DOS для завершення програми
     int 21h                   ; Виклик DOS-преривання для завершення
 main ENDP
