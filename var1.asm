@@ -85,6 +85,26 @@ output_occurrences_loop:
     call count_occurrences_substring_m ; Виклик процедури для підрахунку входжень
     jmp read_line                  ; Перехід до наступного читання рядка
 
+read_argument PROC
+    xor ch, ch                     ; Очистка верхньої частини регістра CX
+    mov cl, es:[80h]               ; Завантаження довжини аргументів
+    dec cl                         ; Віднімання 1, оскільки перший символ - це команда
+    mov substring_length, cl       ; Збереження довжини підрядка
+read_substring:
+    test cl, cl                    ; Перевірка, чи не дійшли до кінця аргументів
+    jz read_substring_end          ; Якщо так, завершення процедури
+    mov si, 81h                    ; Встановлення SI на початок аргументів
+    add si, cx                     ; Додавання зміщення до SI
+    mov bx, offset substring       ; Встановлення BX на початок буфера підрядка
+    add bx, cx                     ; Додавання зміщення до BX
+    mov al, es:[si]                ; Копіювання символу з аргументів
+    mov byte ptr [bx-1], al        ; Збереження символу в підрядок
+    dec cl                         ; Зменшення лічильника довжини
+    jmp read_substring             ; Повторення циклу для наступного символу
+read_substring_end:
+    ret
+read_argument ENDP
+
 
     mov ah, 4Ch               ; Функція DOS для завершення програми
     int 21h                   ; Виклик DOS-преривання для завершення
