@@ -80,6 +80,11 @@ output_occurrences_loop:
     loop output_occurrences_loop  ; Повторює цикл, поки CX не дорівнює 0
     jmp end_program
 
+    count_occurrences_substring:
+    mov byte ptr [bx], 0          ; Завершення рядка нульовим символом
+    call count_occurrences_substring_m ; Виклик процедури для підрахунку входжень
+    jmp read_line                  ; Перехід до наступного читання рядка
+
 
     mov ah, 4Ch               ; Функція DOS для завершення програми
     int 21h                   ; Виклик DOS-преривання для завершення
