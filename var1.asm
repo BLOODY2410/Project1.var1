@@ -121,6 +121,25 @@ inner_loop:
     inc di                         ; Перехід до наступного символу в підрядку
     dec dh                         ; Зменшення залишкової довжини підрядка
     jnz inner_loop                 ; Якщо DH не нуль, продовжен
+    inc bx
+    inc cl               ; Інкрементування лічильника входжень
+not_matched:
+    inc bx               ; Перехід до наступного символу в рядку
+    cmp byte ptr [bx], 0 ; Перевірка на кінець рядка
+    jnz outer_loop       ; Якщо не кінець, продовження пошуку підрядка
+
+    ; Зберігання загальної кількості входжень і повернення
+    mov si, offset occurrences
+    xor bx, bx
+    mov bl, occurrences_length
+    shl bl, 1
+    add si, bx
+    mov al, occurrences_length
+    mov ah, cl
+    mov [si], ax
+    inc occurrences_length
+    ret
+count_occurrences_substring_m ENDP
 
 
 
