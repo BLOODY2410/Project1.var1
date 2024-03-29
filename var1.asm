@@ -23,10 +23,10 @@ main PROC
 
 
 read_line_loop:
-    call read_line
+    call read_next
     push ax
 
-    call count_substring_occurrences
+    call count_occurrences_substring
 
     pop ax
     or ax, ax
@@ -88,7 +88,7 @@ resd_arguments ENDP
 count_occurrences_substring PROC
  xor cx, cx                 
  mov bx, offset string      
-er_loop:     
+outer_loop:     
  mov si, bx                 
  mov di, offset substring   
  mov dh, substring_length   
@@ -211,7 +211,7 @@ print_occurrences_loop:
     mov al, bh       ; Копіюємо кількість входжень до AL для конвертації в рядок
     call convert_to_string  ; Конвертуємо кількість входжень у рядок
     mov ah, 09h      ; Встановлення функції DOS для виведення рядка
-    mov dx, offset word_str  ; Встановлення вказівника на рядок
+    mov dx, offset result  ; Встановлення вказівника на рядок
     int 21h          ; Виклик DOS преривання для виведення рядка
 
     mov ah, 02h      ; Встановлення функції DOS для виведення одного символу
@@ -222,7 +222,7 @@ print_occurrences_loop:
     mov al, bl       ; Копіюємо номер рядка до AL для конвертації в рядок
     call convert_to_string  ; Конвертуємо номер рядка у рядок
     mov ah, 09h      ; Встановлення функції DOS для виведення рядка
-    mov dx, offset word_str  ; Встановлення вказівника на рядок
+    mov dx, offset result  ; Встановлення вказівника на рядок
     int 21h          ; Виклик DOS преривання для виведення рядка
 
     mov ah, 02h      ; Встановлення функції DOS для виведення символу нового рядка
