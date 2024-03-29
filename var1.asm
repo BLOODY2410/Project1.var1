@@ -19,7 +19,7 @@ main PROC
    mov es, ax
    mov ax, @data
    mov ds, ax
-   call read_argument         
+   call resd_arguments         
 
 
 read_line_loop:
@@ -64,7 +64,7 @@ read_line_end:
     
 read_next ENDP
 
-read_argument PROC
+resd_arguments PROC
     xor ch, ch                           ; Очищення верхньої частини регістра CX
     mov cl, es:[80h]                     ; Завантаження довжини аргументів з офсету 80h
     dec cl                               ; Зменшення на 1, оскільки перший символ - це команда
@@ -82,7 +82,7 @@ read_substring:
     jmp read_substring                   ; Повторення циклу для наступного символу
 read_substring_end:
     ret                                  ; Повернення з процедури
-read_argument ENDP
+resd_arguments ENDP
 
 
 count_occurrences_substring PROC
@@ -198,6 +198,54 @@ nextStep:
     loop outerLoop                ; Повторюємо зовнішній цикл
     ret                           ; Повернення з процедури
 sort_occurrences ENDP
+print_occurrences PROC
+    call startprint  ; Виклик ініціалізації процесу друку (потрібно реалізувати окремо, якщо потрібно)
+
+print_occurrences_loop:
+    mov bx, [si]     ; Завантажуємо значення з масиву входжень
+
+    cmp bh, 0        ; Перевіряємо, чи вищий байт (кількість входжень) нульовий
+    je print_occurrences_loop_end  ; Якщо так, закінчуємо цикл
+
+    xor ax, ax       ; Очищення регістра AX
+    mov al, bh       ; Копіюємо кількість входжень до AL для конвертації в рядок
+    call convert_to_string  ; Конвертуємо кількість входжень у рядок
+    mov ah, 09h      ; Встановлення функції DOS для виведення рядка
+    mov dx, offset word_str  ; Встановлення вказівника на рядок
+    int 21h          ; Виклик DOS преривання для виведення рядка
+
+    mov ah, 02h      ; Встановлення функції DOS для виведення одного символу
+    mov dl, ' '      ; Вивід пробілу між числами
+    int 21h          ; Виклик DOS преривання
+
+    xor ax, ax       ; Очищення регістра AX
+    mov al, bl       ; Копіюємо номер рядка до AL для конвертації в рядок
+    call convert_to_string  ; Конвертуємо номер рядка у рядок
+    mov ah, 09h      ; Встановлення функції DOS для виведення рядка
+    mov dx, offset word_str  ; Встановлення вказівника на рядок
+    int 21h          ; Виклик DOS преривання для виведення рядка
+
+    mov ah, 02h      ; Встановлення функції DOS для виведення символу нового рядка
+    mov dl, 0Dh      ; Вивід символу повернення каретки (CR)
+    int 21h          ; Виклик DOS преривання
+    mov dl, 0Ah      ; Вивід символу нового рядка (LF)
+    int 21h          ; Виклик DOS преривання
+
+    add si, 2        ; Переміщення вказівника на наступну пару значень у масиві входжень
+    loop print_occurrences_loop  ; Повторення циклу для наступного елемента
+
+print_occurrences_loop_end:
+    ret              ; Повернення з процедури
+print_occurrences ENDP
+
+startprint proc
+    mov si, offset occurrences
+    xor cx, cx
+    mov cl, occurrences_length
+
+    ret
+startprint endp
+
 end main
 
 
