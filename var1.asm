@@ -3,25 +3,34 @@
 
 .data                         ; Секція даних
     result db 6 dup('$')         ; Буфер для зберігання рядкового представлення чисел, ініціалізований символами '$'
+
     occurrences dw 100 dup(0)    ; Масив для зберігання кількості входжень підстрічки
     string_length db 0        ; Змінна для зберігання довжини поточної стрічки
+    
     string db 255 dup(0)      ; Буфер для зберігання поточної стрічки, що читається з вводу
     substring db 255 dup(0)   ; Буфер для зберігання підстрічки, по якій ведеться пошук
+
     substring_length db 0     ; Змінна для зберігання довжини підстрічки
     occurrences_length db 0      ; Змінна для зберігання кількості записів в масиві ocuranse
 
-.code                         ; Секція коду
-main PROC                     ; Основна процедура програми
-    mov ax, @data             ; Встановлення сегменту даних для програми
-    mov ds, ax
-    mov ax, @data             ; Встановлення сегменту даних для програми
-    mov ds, ax
+.code                         
+main PROC                     
+   mov ax, ds
+   mov es, ax
+   mov ax, @data
+   mov ds, ax
+   call read_argument         
 
-    call read_argument        ; Виклик процедури читання аргументу командного рядка
 
+read_line_loop:
+    call read_line
+    push ax
 
-read_line:                    ; Мітка для читання стрічки
-    mov string_length, 0      ; Ініціалізація довжини стрічки
+    call count_substring_occurrences
+
+    pop ax
+    or ax, ax
+    jnz read_line_loop
 
 
 
