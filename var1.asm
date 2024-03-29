@@ -85,102 +85,41 @@ read_substring_end:
 read_argument ENDP
 
 
-outp
-    mov si, offset occurrences    ; Встановлює SI на початок масиву входжень
-    xor cx, cx                    ; Очищує регістр CX для використання в циклі
-    mov cl, occurrences_length    ; Встановлює довжину масиву входжень у CL для обробки циклу
-
-output_occurrences_loop:
-    mov bx, [si]                  ; Завантажує значення входження в регістр BX (AH:BH - кількість, AL:BL - номер рядка)
-
-    xor ax, ax                    ; Очищує регістр AX для використання
-    mov al, bh                    ; Копіює вищий байт BX (кількість входжень) у нижній байт AX для конвертації у рядок
-    call convert_to_string        ; Конвертує кількість входжень з числа у рядок для виведення
-    mov ah, 09h                   ; Встановлює функцію DOS для виведення рядка
-    mov dx, offset result         ; Встановлює DX на початок рядка з результатом конвертації
-    int 21h                       ; Викликає переривання DOS для виведення рядка на екран
-
-    mov ah, 02h                   ; Встановлює функцію DOS для виведення одного символу
-    mov dl, ' '                   ; Встановлює пробіл як символ для виведення
-    int 21h                       ; Викликає переривання DOS для виведення пробіла
-
-    xor ax, ax                    ; Очищує регістр AX для наступного використання
-    mov al, bl                    ; Копіює нижній байт BX (номер рядка) у нижній байт AX для конвертації у рядок
-    call convert_to_string        ; Конвертує номер рядка з числа у рядок для виведення
-    mov ah, 09h                   ; Встановлює функцію DOS для виведення рядка
-    mov dx, offset result         ; Встановлює DX на початок рядка з результатом конвертації
-    int 21h                       ; Викликає переривання DOS для виведення рядка на екран
-
-    mov ah, 02h                   ; Встановлює функцію DOS для виведення одного символу
-    mov dl, 0Dh                   ; Встановлює код повернення каретки (Carriage Return) для виведення
-    int 21h                       ; Викликає переривання DOS для виведення CR
-    mov dl, 0Ah                   ; Встановлює код нового рядка (Line Feed) для виведення
-    int 21h                       ; Викликає переривання DOS для виведення LF
-
-    add si, 2                     ; Переміщує вказівник SI на наступну пару значень в масиві входжень
-    loop output_occurrences_loop  ; Повторює цикл, поки CX не дорівнює 0
-    jmp read_substring_end
-
-count_occurrences_substring:
-    mov byte ptr [bx], 0          ; Завершення рядка нульовим символом
-    call count_occurrences_substring_m ; Виклик процедури для підрахунку входжень
-    jmp read_line                  ; Перехід до наступного читання рядка
-
-read_argument PROC
-    xor ch, ch                     ; Очистка верхньої частини регістра CX
-    mov cl, es:[80h]               ; Завантаження довжини аргументів
-    dec cl                         ; Віднімання 1, оскільки перший символ - це команда
-    mov substring_length, cl       ; Збереження довжини підрядка
-read_substring:
-    test cl, cl                    ; Перевірка, чи не дійшли до кінця аргументів
-    jz read_substring_end          ; Якщо так, завершення процедури
-    mov si, 81h                    ; Встановлення SI на початок аргументів
-    add si, cx                     ; Додавання зміщення до SI
-    mov bx, offset substring       ; Встановлення BX на початок буфера підрядка
-    add bx, cx                     ; Додавання зміщення до BX
-    mov al, es:[si]                ; Копіювання символу з аргументів
-    mov byte ptr [bx-1], al        ; Збереження символу в підрядок
-    dec cl                         ; Зменшення лічильника довжини
-    jmp read_substring             ; Повторення циклу для наступного символу
-read_substring_end:
-    ret
-read_argument ENDP
-
-
-count_occurrences_substring_m PROC
-    xor cx, cx                     ; Ініціалізація лічильника входжень
-    mov bx, offset string          ; Встановлення покажчика на початок рядка
-outer_loop:
-    mov si, bx                     ; Встановлення SI на поточну позицію в рядку
-    mov di, offset substring       ; Встановлення DI на початок підрядка
-    mov dh, substring_length       ; Встановлення DH на довжину підрядка
-inner_loop:
-    mov al, [si]                   ; Завантаження символу з рядка
-    cmp al, [di]                   ; Порівняння з відповідним символом підрядка
-    jne not_matched                ; Якщо не співпадає, перехід до наступного підрядка
-    inc si                         ; Перехід до наступного символу в рядку
-    inc di                         ; Перехід до наступного символу в підрядку
-    dec dh                         ; Зменшення залишкової довжини підрядка
-    jnz inner_loop                 ; Якщо DH не нуль, продовжен
-    inc bx
-    inc cl               ; Інкрементування лічильника входжень
-not_matched:
-    inc bx               ; Перехід до наступного символу в рядку
-    cmp byte ptr [bx], 0 ; Перевірка на кінець рядка
-    jnz outer_loop       ; Якщо не кінець, продовження пошуку підрядка
-
-    ; Зберігання загальної кількості входжень і повернення
-    mov si, offset occurrences
-    xor bx, bx
-    mov bl, occurrences_length
-    shl bl, 1
-    add si, bx
-    mov al, occurrences_length
-    mov ah, cl
-    mov [si], ax
-    inc occurrences_length
-    ret
-count_occurrences_substring_m ENDP
+count_occurrences_substring PROC
+ xor cx, cx                 
+ mov bx, offset string      
+er_loop:     
+ mov si, bx                 
+ mov di, offset substring   
+ mov dh, substring_length   
+er_loop:     
+ mov al, [si]               
+ mov ah, [di]               
+ cmp al, ah                 
+ jne not_matched            
+ inc si                     
+ inc di                     
+ dec dh                     
+ jnz inner_loop             
+                            
+ inc bx      
+ inc cl                     
+_matched:                   
+ inc bx                     
+ cmp byte ptr [bx], 0       
+ jnz outer_loop             
+                            
+ mov si, offset occurrences
+ xor bx, bx
+ mov bl, occurrences_length
+ shl bl, 1
+ add si, bx
+ mov al, occurrences_length
+ mov ah, cl
+ mov [si], ax
+ inc occurrences_length
+ ret
+count_occurrences_substring ENDP
 
 convert_to_string PROC
     push ax             ; Збереження регістра AX
