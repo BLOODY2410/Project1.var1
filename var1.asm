@@ -92,33 +92,33 @@ er_loop:
  mov si, bx                 
  mov di, offset substring   
  mov dh, substring_length   
-er_loop:     
+inner_loop:     
  mov al, [si]               
- mov ah, [di]               
- cmp al, ah                 
- jne not_matched            
- inc si                     
- inc di                     
- dec dh                     
- jnz inner_loop             
-                            
- inc bx      
- inc cl                     
-_matched:                   
- inc bx                     
- cmp byte ptr [bx], 0       
- jnz outer_loop             
-                            
- mov si, offset occurrences
- xor bx, bx
- mov bl, occurrences_length
- shl bl, 1
- add si, bx
- mov al, occurrences_length
- mov ah, cl
- mov [si], ax
- inc occurrences_length
- ret
+    mov ah, [di]               
+    cmp al, ah                 
+    jne not_matched            
+    inc si                     
+    inc di                     
+    dec dh                     
+     jnz inner_loop             
+                                
+     inc bx      
+     inc cl                     
+not_matched:                   
+     inc bx                     
+     cmp byte ptr [bx], 0       
+     jnz outer_loop             
+                                
+     mov si, offset occurrences
+     xor bx, bx
+     mov bl, occurrences_length
+     shl bl, 1
+     add si, bx
+     mov al, occurrences_length
+     mov ah, cl
+     mov [si], ax
+     inc occurrences_length
+     ret
 count_occurrences_substring ENDP
 
 convert_to_string PROC
@@ -173,7 +173,31 @@ end_reverse:
     ret
 convert_to_string ENDP
 
-
+sort_occurrences PROC             ; Алгоритм сортування бульбашкою для кількості входжень
+    xor cx, cx
+    mov cl, occurrences_length
+    dec cx                        ; Зменшуємо на 1, оскільки порівнюємо сусідні елементи
+outerLoop:
+    push cx                       ; Зберігаємо зовнішній лічильник циклу
+    lea si, occurrences           ; Вказівник на початок масиву входжень
+    xor cx, cx                    ; Скидуємо внутрішній лічильник циклу
+    mov cl, occurrences_length
+    dec cx                        ; Знову зменшуємо на 1 для внутрішнього циклу
+innerLoop:
+    mov ax, [si]                  ; Завантажуємо поточне значення кількості входжень
+    mov bx, [si+2]                ; Завантажуємо наступне значення кількості входжень
+    cmp ah, bh                    ; Порівнюємо кількість входжень
+    jle nextStep                  ; Якщо наступне не більше за поточне, переходимо далі
+    ; Обмін значень
+    mov [si], bx                  ; Зберігаємо наступне значення у поточну позицію
+    mov [si+2], ax                ; Зберігаємо поточне значення у наступну позицію
+nextStep:
+    add si, 2                     ; Переходимо до наступної пари значень
+    loop innerLoop                ; Повторюємо внутрішній цикл
+    pop cx                        ; Відновлюємо зовнішній лічильник циклу
+    loop outerLoop                ; Повторюємо зовнішній цикл
+    ret                           ; Повернення з процедури
+sort_occurrences ENDP
 end main
 
 
