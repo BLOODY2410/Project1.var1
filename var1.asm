@@ -32,28 +32,60 @@ read_line_loop:
     or ax, ax
     jnz read_line_loop
 
+read_line_loop_end:
 
+    call sort_occurrences
+    call print_occurrences
 
+end_program:
+    mov ah, 4Ch
+    int 21h
 
-read_next:                    ; Мітка для читання наступного символу
-    mov ah, 3Fh               ; Функція DOS для читання з файлу (або стандартного вводу)
-    mov bx, 0h                ; Дескриптор стандартного вводу
-    mov cx, 1                 ; Кількість байтів для читання
-    mov dx, offset string     ; Вказівник на буфер стрічки
-    add dl, string_length     ; Додавання поточної довжини стрічки до вказівника (для читання в кінець буфера)
-    int 21h                   ; Виклик DOS-преривання для читання
-    inc string_length         ; Збільшення лічильника довжини стрічки
+main ENDP
+
+read_next PROC                    
+       mov string_length, 0    ; Ініціалізація довжини стрічки до 0
+next_char:
+    mov ah, 3Fh                ; Встановлення функції DOS для читання з файлу/вводу
+    mov bx, 0h                 ; Використання дескриптора стандартного вводу
+    mov cx, 1                  ; Встановлення кількості байтів для читання (1 байт)
+    mov dx, offset string      ; Встановлення вказівника на буфер стрічки
+    add dl, string_length      ; Додавання довжини стрічки до вказівника, щоб читати в кінець буфера
+    int 21h                    ; Виклик DOS-преривання для читання
+    inc string_length          ; Збільшення лічильника довжини стрічки
     mov bx, dx
-    cmp byte ptr [bx], 0Ah    ; Перевірка на символ нового рядка
-    je count_occurrences_substring ; Якщо знайдено, переходимо до підрахунку входжень
+    cmp byte ptr [bx], 0Ah     ; Перевірка на символ нового рядка
+    je read_line_end           ; Якщо знайдено символ нового рядка, завершуємо читання
     or ax, ax
-    jnz read_next             ; Якщо прочитано не нульову кількість байт, читаємо далі
-    mov byte ptr [bx], 0      ; Якщо досягнуто кінця файлу, закінчуємо стрічку нуль-символом
-    call count_occurrences_substring_m ; Підрахунок входжень для останньої стрічки
-    jmp output_occurrences       ; Перехід до виведення результатів
+    jnz next_char              ; Якщо було прочитано не нуль байтів, продовжуємо читання
+read_line_end:
+    mov byte ptr [bx], 0       ; Встановлення кінця стрічки нульовим символом
+    ret                         ; Повернення з процедури
+    
+read_next ENDP
+
+read_argument PROC
+    xor ch, ch                           ; Очищення верхньої частини регістра CX
+    mov cl, es:[80h]                     ; Завантаження довжини аргументів з офсету 80h
+    dec cl                               ; Зменшення на 1, оскільки перший символ - це команда
+    mov substring_length, cl             ; Збереження довжини підрядка
+read_substring:
+    test cl, cl                          ; Перевірка, чи не дійшли до кінця аргументів
+    jz read_substring_end               ; Якщо так, завершуємо процедуру
+    mov si, 81h                          ; Встановлення SI на початок аргументів (з офсету 81h)
+    add si, cx                           ; Додавання зміщення до SI
+    mov bx, offset substring             ; Встановлення BX на початок буфера підрядка
+    add bx, cx                           ; Додавання зміщення до BX
+    mov al, es:[si]                      ; Копіювання символу з аргументів
+    mov byte ptr [bx-1], al              ; Збереження символу в підрядок
+    dec cl                               ; Зменшення лічильника довжини
+    jmp read_substring                   ; Повторення циклу для наступного символу
+read_substring_end:
+    ret                                  ; Повернення з процедури
+read_argument ENDP
 
 
-output_occurrences:
+outp
     mov si, offset occurrences    ; Встановлює SI на початок масиву входжень
     xor cx, cx                    ; Очищує регістр CX для використання в циклі
     mov cl, occurrences_length    ; Встановлює довжину масиву входжень у CL для обробки циклу
@@ -210,6 +242,6 @@ end main
 
     mov ah, 4Ch               ; Функція DOS для завершення програми
     int 21h                   ; Виклик DOS-преривання для завершення
-main ENDP
+
 
 end main
